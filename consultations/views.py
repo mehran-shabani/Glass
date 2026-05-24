@@ -109,12 +109,16 @@ class GlassConfigView(APIView):
     def get(self, request):
         return Response(
             {
-                "base_url": settings.GLASS_API_BASE_URL,
-                "version": settings.GLASS_API_VERSION,
-                "timeout_seconds": settings.GLASS_API_TIMEOUT_SECONDS,
-                "auth_header": settings.GLASS_API_AUTH_HEADER,
-                "auth_scheme": settings.GLASS_API_AUTH_SCHEME,
-                "api_key_configured": bool(settings.GLASS_API_KEY),
+                "api_key_configured": bool(settings.OPENAI_API_KEY),
+                "base_url": settings.OPENAI_BASE_URL,
+                "default_model": settings.OPENAI_MODEL,
+                "timeout_seconds": settings.OPENAI_TIMEOUT_SECONDS,
+                "temperature": settings.OPENAI_TEMPERATURE,
+                "max_output_tokens": settings.OPENAI_MAX_OUTPUT_TOKENS,
+                "app_name": settings.CLINICAL_APP_NAME,
+                "default_language": settings.CLINICAL_DEFAULT_LANGUAGE,
+                "structured_output": settings.CLINICAL_STRUCTURED_OUTPUT,
+                "safe_mode": settings.CLINICAL_SAFE_MODE,
             }
         )
 
