@@ -20,6 +20,7 @@ from .services.openai_client import (
     ClinicalTimeoutError,
 )
 from .services.prompt_builder import build_clinical_prompt
+from .services.openai_response import parse_structured_output, structured_to_markdown
 
 
 class ClinicalAskView(APIView):
@@ -39,13 +40,19 @@ class ClinicalAskView(APIView):
                 max_output_tokens=d.get("max_output_tokens"),
                 structured=d.get("structured"),
             )
+            original_content = response.get("content", "")
+            structured_output = parse_structured_output(original_content)
+            markdown_content = structured_to_markdown(structured_output)
+            extracted_content = markdown_content or original_content
+
             rec = ClinicalAIRequest.objects.create(
                 task_type=d.get("task_type", "clinical_qa"),
                 question=d["question"],
                 patient_context=d.get("patient_context", ""),
                 prompt_sent=prompt,
                 raw_response=response.get("raw", {}),
-                extracted_content=response.get("content", ""),
+                extracted_content=extracted_content,
+                structured_output=structured_output,
                 references=response.get("references", []),
                 citations=response.get("citations", []),
                 usage=response.get("usage", {}),
