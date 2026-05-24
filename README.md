@@ -1,55 +1,83 @@
-# Agent-Helssa MVP with OpenAI Clinical API
+# Helssa Clinical AI MVP
 
-## OpenAI API test
+A Django + DRF physician-facing clinical AI assistant using OpenAI SDK.
 
-`.env` example:
+## MVP features
+1. Clinical Q&A
+2. Draft DDx
+3. Draft Assessment & Plan
+4. Draft HPI
+5. Draft Clinic Note
+6. Draft Patient Handout
 
-```env
-OPENAI_API_KEY=your_real_key_here
-OPENAI_BASE_URL=https://api.openai.com/v1
-OPENAI_MODEL=gpt-4.1
-OPENAI_TIMEOUT_SECONDS=120
-OPENAI_TEMPERATURE=0.2
-OPENAI_MAX_OUTPUT_TOKENS=1200
+## Safety disclaimer
+This tool is clinical decision support only. It is not a medical device, not a replacement for clinician judgment, examination, emergency care, local protocols, or current guidelines.
+
+## Setup
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
 ```
 
+Then edit `.env`:
+```env
+OPENAI_API_KEY=your_key_here
+OPENAI_BASE_URL=https://api.openai.com/v1
+OPENAI_MODEL=gpt-4.1
+```
+
+## Run
 ```bash
-pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
 ```
 
-Clinical UI:
+Open:
 
-```bash
-curl http://127.0.0.1:8000/clinical/
-```
+`http://127.0.0.1:8000/clinical/`
 
-Clinical config:
+## API examples
+- `GET /api/clinical/config/`
+- `POST /api/clinical/ask/`
 
-```bash
-curl http://127.0.0.1:8000/api/clinical/config/
-```
-
-Clinical ask:
-
+Example curl:
 ```bash
 curl -X POST http://127.0.0.1:8000/api/clinical/ask/ \
   -H "Content-Type: application/json" \
   -d '{
-    "task_type": "differential",
-    "patient_context": "54M, smoker, recent long flight, unilateral calf swelling and pain, no fever.",
-    "question": "Generate prioritized differential diagnosis and recommended diagnostic workup."
+    "task_type": "draft_ddx",
+    "question": "Adult patient with acute unilateral leg swelling",
+    "patient_context": "No fever. Recent long travel. Calf tenderness.",
+    "structured": true
   }'
 ```
 
-History endpoints:
+## Testing
+```bash
+pytest
+```
 
-- `GET /api/clinical/history/`
-- `GET /api/clinical/history/<id>/`
-
-CLI direct API test:
-
+## Manual OpenAI smoke test
 ```bash
 python scripts/test_openai_api.py
 ```
+
+## Production checklist
+- DEBUG=false
+- secure SECRET_KEY
+- rotate API keys
+- HTTPS
+- authentication
+- role-based access
+- PHI encryption at rest
+- audit logs
+- rate limiting
+- consent workflow
+- retention/deletion policy
+- clinical validation
+- local guideline adaptation
+- monitoring and error tracking
+
+No active workflow depends on Glass Health API.
