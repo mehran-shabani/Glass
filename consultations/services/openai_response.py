@@ -8,6 +8,90 @@ def pretty_json(data: Any) -> str:
     return json.dumps(data, indent=2, ensure_ascii=False, sort_keys=True)
 
 
+def _strip_markdown_fences(content: str) -> str:
+    text = (content or "").strip()
+    if not text.startswith("```"):
+        return text
+
+    lines = text.splitlines()
+    if not lines:
+        return text
+    if lines[-1].strip() != "```":
+        return text
+
+    inner = lines[1:-1]
+    return "\n".join(inner).strip()
+
+
+def parse_structured_output(content: str) -> dict:
+    try:
+        candidate = _strip_markdown_fences(content)
+        parsed = json.loads(candidate)
+        return parsed if isinstance(parsed, dict) else {}
+    except Exception:
+        return {}
+
+
+def structured_to_markdown(data: dict) -> str:
+    if not isinstance(data, dict) or not data:
+        return ""
+
+    lines: list[str] = []
+
+    summary = data.get("summary")
+    if isinstance(summary, str) and summary.strip():
+        lines.append("## Summary")
+        lines.append(summary.strip())
+
+    sections = data.get("sections")
+    if isinstance(sections, list) and sections:
+        lines.append("## Sections")
+        for sec in sections:
+            if not isinstance(sec, dict):
+                continue
+            title = sec.get("title") if isinstance(sec.get("title"), str) else ""
+            content = sec.get("content") if isinstance(sec.get("content"), str) else ""
+            if title.strip():
+                lines.append(f"### {title.strip()}")
+            if content.strip():
+                lines.append(content.strip())
+
+    for key, heading in (
+        ("red_flags", "Red Flags"),
+        ("missing_data", "Missing Data"),
+        ("suggested_next_steps", "Suggested Next Steps"),
+    ):
+        items = data.get(key)
+        if isinstance(items, list) and items:
+            lines.append(f"## {heading}")
+            for item in items:
+                if isinstance(item, str) and item.strip():
+                    lines.append(f"- {item.strip()}")
+
+    citations = data.get("citations")
+    if isinstance(citations, list) and citations:
+        lines.append("## Citations")
+        for citation in citations:
+            if not isinstance(citation, dict):
+                continue
+            title = citation.get("title") if isinstance(citation.get("title"), str) else "Untitled"
+            source = citation.get("source") if isinstance(citation.get("source"), str) else ""
+            url = citation.get("url") if isinstance(citation.get("url"), str) else ""
+
+            line = f"- **{title.strip() or 'Untitled'}**"
+            extras = [part.strip() for part in (source, url) if isinstance(part, str) and part.strip()]
+            if extras:
+                line += f" — {' | '.join(extras)}"
+            lines.append(line)
+
+    safety_note = data.get("safety_note")
+    if isinstance(safety_note, str) and safety_note.strip():
+        lines.append("## Safety Note")
+        lines.append(safety_note.strip())
+
+    return "\n\n".join(lines).strip()
+
+
 def extract_openai_response(raw: dict) -> dict:
     content = ""
     references = []

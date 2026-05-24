@@ -32,4 +32,4 @@ class ClinicalRequestSerializer(serializers.ModelSerializer):
 class ClinicalAskResponseSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClinicalAIRequest
-        fields = ["id", "task_type", "question", "patient_context", "status", "extracted_content", "references", "citations", "usage", "detected_schema", "raw_response", "error_message", "latency_ms", "created_at"]
+        fields = ["id", "task_type", "question", "patient_context", "status", "extracted_content", "structured_output", "references", "citations", "usage", "detected_schema", "raw_response", "error_message", "latency_ms", "created_at"]
