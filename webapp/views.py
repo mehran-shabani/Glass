@@ -1,4 +1,4 @@
 from django.shortcuts import render
 
-def glass_chat_page(request):
-    return render(request,'webapp/glass_chat.html')
+def clinical_chat_page(request):
+    return render(request,'webapp/clinical_chat.html')

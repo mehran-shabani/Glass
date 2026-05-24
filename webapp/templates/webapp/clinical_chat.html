@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <body>
-<h1>Glass Clinical Chat</h1>
+<h1>Clinical Assistant</h1>
 <p>این خروجی صرفاً کمک‌تصمیم بالینی برای بررسی پزشک است و جایگزین قضاوت بالینی، معاینه، گایدلاین محلی یا تصمیم نهایی پزشک نیست.</p>
 <p id="config_status">Loading config...</p>
 <label>Task type</label>
@@ -12,12 +12,12 @@
 <label><input type="checkbox" id="show_raw"> show raw response</label>
 <div><label>Patient context</label><br><textarea id='patient_context' rows="4" cols="100"></textarea></div>
 <div><label>Question</label><br><textarea id='question' rows="4" cols="100"></textarea></div>
-<button id='ask'>Ask Glass</button>
+<button id='ask'>Ask Clinical AI</button>
 <div id="meta"></div>
 <h3>Extracted answer</h3><pre id='output'></pre>
 <h3>References</h3><pre id='refs'></pre>
 <h3>Citations</h3><pre id='cites'></pre>
 <h3>Usage</h3><pre id='usage'></pre>
 <h3>Raw JSON</h3><pre id='raw'></pre>
-<script src='/static/webapp/glass_chat.js'></script>
+<script src='/static/webapp/clinical_chat.js'></script>
 </body></html>

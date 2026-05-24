@@ -1,64 +1,40 @@
-# Agent-Helssa MVP with Glass API
+# Agent-Helssa MVP with OpenAI Clinical API
 
-## Real Glass API test
+## OpenAI API test
 
 `.env` example:
 
 ```env
-GLASS_API_KEY=your_real_key_here
-GLASS_API_BASE_URL=https://glass.health/api/external/v2
-GLASS_API_VERSION=glass-5.5
-GLASS_API_TIMEOUT_SECONDS=120
-GLASS_API_AUTH_HEADER=Authorization
-GLASS_API_AUTH_SCHEME=Bearer
-GLASS_API_DEBUG_RAW_RESPONSE=true
+OPENAI_API_KEY=your_real_key_here
+OPENAI_BASE_URL=https://api.openai.com/v1
+OPENAI_MODEL=gpt-4.1
+OPENAI_TIMEOUT_SECONDS=120
+OPENAI_TEMPERATURE=0.2
+OPENAI_MAX_OUTPUT_TOKENS=1200
 ```
-
-Install:
 
 ```bash
 pip install -r requirements.txt
-```
-
-Migrate:
-
-```bash
 python manage.py migrate
-```
-
-Run:
-
-```bash
 python manage.py runserver
 ```
 
-Check safe config:
+Clinical UI:
 
 ```bash
-curl http://127.0.0.1:8000/api/glass/config/
+curl http://127.0.0.1:8000/clinical/
 ```
 
-Direct debug call:
+Clinical config:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/glass/debug/messages/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "version": "glass-5.5",
-    "messages": [
-      {
-        "role": "user",
-        "content": "Return a short clinical-style answer: What are common causes of acute unilateral leg swelling?"
-      }
-    ],
-    "stream": false
-  }'
+curl http://127.0.0.1:8000/api/clinical/config/
 ```
 
-Clinical wrapped call:
+Clinical ask:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/glass/ask/ \
+curl -X POST http://127.0.0.1:8000/api/clinical/ask/ \
   -H "Content-Type: application/json" \
   -d '{
     "task_type": "differential",
@@ -67,16 +43,13 @@ curl -X POST http://127.0.0.1:8000/api/glass/ask/ \
   }'
 ```
 
+History endpoints:
+
+- `GET /api/clinical/history/`
+- `GET /api/clinical/history/<id>/`
+
 CLI direct API test:
 
 ```bash
-python scripts/test_glass_api.py
+python scripts/test_openai_api.py
 ```
-
-Expected response:
-- The response should be JSON.
-- It should contain a markdown-formatted clinical answer.
-- It may contain in-text citations.
-- It may contain references/citations metadata.
-- The app stores `raw_response` and extracts best-effort fields.
-- `/api/glass/debug/messages/` is development-only and must not be exposed publicly in production.
