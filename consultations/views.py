@@ -7,68 +7,62 @@ from rest_framework.views import APIView
 
 from .models import GlassClinicalRequest
 from .serializers import (
-    GlassClinicalAskRequestSerializer,
-    GlassClinicalAskResponseSerializer,
-    GlassClinicalRequestSerializer,
-    GlassDebugMessagesSerializer,
+    ClinicalAskRequestSerializer,
+    ClinicalAskResponseSerializer,
+    ClinicalRequestSerializer,
 )
-from .services.glass_client import (
-    GlassAuthenticationError,
-    GlassBadRequestError,
-    GlassClient,
-    GlassClientError,
-    GlassRateLimitError,
-    GlassServerError,
-    GlassTimeoutError,
+from .services.openai_client import (
+    ClinicalAuthenticationError,
+    ClinicalBadRequestError,
+    ClinicalOpenAIClient,
+    ClinicalRateLimitError,
+    ClinicalServerError,
+    ClinicalTimeoutError,
 )
-from .services.glass_response import extract_glass_response
 from .services.prompt_builder import build_clinical_prompt
 
 
-class ChatView(APIView):
+class ClinicalAskView(APIView):
     def post(self, request):
-        return Response({"message": "legacy chat ok"})
-
-
-class GlassClinicalAskView(APIView):
-    def post(self, request):
-        s = GlassClinicalAskRequestSerializer(data=request.data)
+        s = ClinicalAskRequestSerializer(data=request.data)
         s.is_valid(raise_exception=True)
         d = s.validated_data
         t0 = time.perf_counter()
         prompt = build_clinical_prompt(d["question"], d.get("patient_context", ""), d.get("task_type", "clinical_qa"))
 
         try:
-            raw = GlassClient().send_messages(
+            response = ClinicalOpenAIClient().generate_clinical_response(
                 messages=[{"role": "user", "content": prompt}],
-                version=d.get("version") or None,
-                stream=d.get("stream", False),
+                task_type=d.get("task_type", "clinical_qa"),
+                model=d.get("model") or None,
+                temperature=d.get("temperature"),
+                max_output_tokens=d.get("max_output_tokens"),
+                structured=d.get("structured"),
             )
-            parsed = extract_glass_response(raw)
             rec = GlassClinicalRequest.objects.create(
                 task_type=d.get("task_type", "clinical_qa"),
                 question=d["question"],
                 patient_context=d.get("patient_context", ""),
                 prompt_sent=prompt,
-                raw_response=parsed["raw"],
-                extracted_content=parsed["content"],
-                references=parsed["references"],
-                citations=parsed["citations"],
-                usage=parsed["usage"],
-                detected_schema=parsed["detected_schema"],
+                raw_response=response.get("raw", {}),
+                extracted_content=response.get("content", ""),
+                references=response.get("references", []),
+                citations=response.get("citations", []),
+                usage=response.get("usage", {}),
+                detected_schema=response.get("detected_schema", "openai_responses"),
                 status="completed",
                 latency_ms=int((time.perf_counter() - t0) * 1000),
             )
-            return Response(GlassClinicalAskResponseSerializer(rec).data)
-        except GlassBadRequestError as e:
+            return Response(ClinicalAskResponseSerializer(rec).data)
+        except ClinicalBadRequestError as e:
             err, code = str(e), status.HTTP_400_BAD_REQUEST
-        except GlassRateLimitError as e:
+        except ClinicalRateLimitError as e:
             err, code = str(e), status.HTTP_429_TOO_MANY_REQUESTS
-        except GlassTimeoutError as e:
+        except ClinicalTimeoutError as e:
             err, code = str(e), status.HTTP_504_GATEWAY_TIMEOUT
-        except GlassAuthenticationError:
-            err, code = "Glass API authentication failed. Check GLASS_API_KEY and auth header.", status.HTTP_502_BAD_GATEWAY
-        except (GlassServerError, GlassClientError) as e:
+        except ClinicalAuthenticationError:
+            err, code = "OpenAI authentication failed. Check OPENAI_API_KEY.", status.HTTP_502_BAD_GATEWAY
+        except ClinicalServerError as e:
             err, code = str(e), status.HTTP_502_BAD_GATEWAY
 
         rec = GlassClinicalRequest.objects.create(
@@ -84,28 +78,7 @@ class GlassClinicalAskView(APIView):
         return Response({"detail": err, "id": rec.id, "status": "failed"}, status=code)
 
 
-class GlassDebugMessagesView(APIView):
-    # Development-only schema discovery endpoint. Do not expose publicly in production.
-    def post(self, request):
-        s = GlassDebugMessagesSerializer(data=request.data)
-        s.is_valid(raise_exception=True)
-        d = s.validated_data
-        raw = GlassClient().send_messages(d["messages"], version=d.get("version") or None, stream=d.get("stream", False))
-        parsed = extract_glass_response(raw)
-        return Response(
-            {
-                "status": "ok",
-                "detected_schema": parsed["detected_schema"],
-                "extracted_content": parsed["content"],
-                "references": parsed["references"],
-                "citations": parsed["citations"],
-                "usage": parsed["usage"],
-                "raw_response": parsed["raw"],
-            }
-        )
-
-
-class GlassConfigView(APIView):
+class ClinicalConfigView(APIView):
     def get(self, request):
         return Response(
             {
@@ -123,11 +96,11 @@ class GlassConfigView(APIView):
         )
 
 
-class GlassClinicalRequestListView(generics.ListAPIView):
+class ClinicalRequestListView(generics.ListAPIView):
     queryset = GlassClinicalRequest.objects.order_by("-created_at")
-    serializer_class = GlassClinicalRequestSerializer
+    serializer_class = ClinicalRequestSerializer
 
 
-class GlassClinicalRequestDetailView(generics.RetrieveAPIView):
+class ClinicalRequestDetailView(generics.RetrieveAPIView):
     queryset = GlassClinicalRequest.objects.all()
-    serializer_class = GlassClinicalRequestSerializer
+    serializer_class = ClinicalRequestSerializer

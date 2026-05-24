@@ -8,7 +8,7 @@ def pretty_json(data: Any) -> str:
     return json.dumps(data, indent=2, ensure_ascii=False, sort_keys=True)
 
 
-def extract_glass_response(raw: dict) -> dict:
+def extract_openai_response(raw: dict) -> dict:
     content = ""
     references = []
     citations = []

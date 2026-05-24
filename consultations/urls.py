@@ -1,19 +1,11 @@
 from django.urls import path
 
-from .views import (
-    ChatView,
-    GlassClinicalAskView,
-    GlassClinicalRequestDetailView,
-    GlassClinicalRequestListView,
-    GlassConfigView,
-    GlassDebugMessagesView,
-)
+from .views import ClinicalAskView, ClinicalConfigView, ClinicalRequestDetailView, ClinicalRequestListView
 
 urlpatterns = [
-    path('chat/', ChatView.as_view()),
-    path('glass/ask/', GlassClinicalAskView.as_view()),
-    path('glass/debug/messages/', GlassDebugMessagesView.as_view()),
-    path('glass/config/', GlassConfigView.as_view()),
-    path('glass/history/', GlassClinicalRequestListView.as_view()),
-    path('glass/history/<int:pk>/', GlassClinicalRequestDetailView.as_view()),
+    path('clinical/ask/', ClinicalAskView.as_view()),
+    path('glass/ask/', ClinicalAskView.as_view()),
+    path('clinical/config/', ClinicalConfigView.as_view()),
+    path('clinical/history/', ClinicalRequestListView.as_view()),
+    path('clinical/history/<int:pk>/', ClinicalRequestDetailView.as_view()),
 ]

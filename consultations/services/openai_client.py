@@ -3,7 +3,8 @@ from __future__ import annotations
 from typing import Any
 
 from django.conf import settings
-from openai import (
+try:
+    from openai import (
     APIConnectionError,
     APIError,
     APIStatusError,
@@ -14,6 +15,9 @@ from openai import (
     OpenAI,
     RateLimitError,
 )
+except ImportError:
+    APIConnectionError = APIError = APIStatusError = APITimeoutError = AuthenticationError = BadRequestError = InternalServerError = RateLimitError = Exception
+    OpenAI = None
 
 
 class ClinicalAIError(Exception): ...
@@ -42,6 +46,9 @@ class ClinicalOpenAIClient:
 
         if not self.api_key:
             raise ClinicalAuthenticationError("Missing OPENAI_API_KEY.")
+
+        if OpenAI is None:
+            raise ClinicalAIError("openai package is not installed.")
 
         self.client = OpenAI(
             api_key=self.api_key,
