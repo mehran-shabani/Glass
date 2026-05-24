@@ -7,15 +7,26 @@ class Consultation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
-class GlassClinicalRequest(models.Model):
-    # NOTE: patient_context may contain PHI. Production deployment must encrypt/redact/audit this field.
+class ClinicalAIRequest(models.Model):
+    # IMPORTANT: patient_context may contain PHI. Production deployment must implement:
+    # - encryption at rest
+    # - authentication
+    # - role-based access control
+    # - audit logs
+    # - retention/deletion policy
+    # - HTTPS
+    # - consent workflow
+    # - rate limiting
+    #
+    # Do not print patient_context in console logs.
+    # Do not expose raw PHI in errors.
     TASK_CHOICES = [
         ("clinical_qa", "Clinical Q&A"),
-        ("differential", "Differential Diagnosis"),
-        ("treatment_plan", "Treatment Plan"),
-        ("summarization", "Patient Summarization"),
-        ("documentation", "Documentation"),
-        ("triage", "Triage"),
+        ("draft_ddx", "Draft DDx"),
+        ("draft_assessment_plan", "Draft Assessment & Plan"),
+        ("draft_hpi", "Draft HPI"),
+        ("draft_clinic_note", "Draft Clinic Note"),
+        ("draft_patient_handout", "Draft Patient Handout"),
         ("raw_prompt", "Raw Prompt"),
     ]
     task_type = models.CharField(max_length=50, choices=TASK_CHOICES, default="clinical_qa")
@@ -24,12 +35,21 @@ class GlassClinicalRequest(models.Model):
     prompt_sent = models.TextField(blank=True, default="")
     raw_response = models.JSONField(default=dict, blank=True)
     extracted_content = models.TextField(blank=True, default="")
-    references = models.JSONField(default=list, blank=True)
+    structured_output = models.JSONField(default=dict, blank=True)
     citations = models.JSONField(default=list, blank=True)
+    references = models.JSONField(default=list, blank=True)
     usage = models.JSONField(default=dict, blank=True)
-    detected_schema = models.CharField(max_length=100, blank=True, default="")
-    status = models.CharField(max_length=30, default="completed")
-    error_message = models.TextField(blank=True, default="")
+    detected_schema = models.CharField(max_length=100, blank=True)
+    status = models.CharField(
+        max_length=30,
+        choices=[
+            ("pending", "Pending"),
+            ("completed", "Completed"),
+            ("failed", "Failed"),
+        ],
+        default="pending",
+    )
+    error_message = models.TextField(blank=True)
     latency_ms = models.PositiveIntegerField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

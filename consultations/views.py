@@ -5,7 +5,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import GlassClinicalRequest
+from .models import ClinicalAIRequest
 from .serializers import (
     ClinicalAskRequestSerializer,
     ClinicalAskResponseSerializer,
@@ -39,7 +39,7 @@ class ClinicalAskView(APIView):
                 max_output_tokens=d.get("max_output_tokens"),
                 structured=d.get("structured"),
             )
-            rec = GlassClinicalRequest.objects.create(
+            rec = ClinicalAIRequest.objects.create(
                 task_type=d.get("task_type", "clinical_qa"),
                 question=d["question"],
                 patient_context=d.get("patient_context", ""),
@@ -54,18 +54,18 @@ class ClinicalAskView(APIView):
                 latency_ms=int((time.perf_counter() - t0) * 1000),
             )
             return Response(ClinicalAskResponseSerializer(rec).data)
-        except ClinicalBadRequestError as e:
-            err, code = str(e), status.HTTP_400_BAD_REQUEST
-        except ClinicalRateLimitError as e:
-            err, code = str(e), status.HTTP_429_TOO_MANY_REQUESTS
-        except ClinicalTimeoutError as e:
-            err, code = str(e), status.HTTP_504_GATEWAY_TIMEOUT
+        except ClinicalBadRequestError:
+            err, detail, code = "Request failed validation.", "Unable to process request.", status.HTTP_400_BAD_REQUEST
+        except ClinicalRateLimitError:
+            err, detail, code = "Upstream rate limit reached.", "Service is busy. Please retry shortly.", status.HTTP_429_TOO_MANY_REQUESTS
+        except ClinicalTimeoutError:
+            err, detail, code = "Upstream timeout.", "Service timed out. Please retry.", status.HTTP_504_GATEWAY_TIMEOUT
         except ClinicalAuthenticationError:
-            err, code = "OpenAI authentication failed. Check OPENAI_API_KEY.", status.HTTP_502_BAD_GATEWAY
-        except ClinicalServerError as e:
-            err, code = str(e), status.HTTP_502_BAD_GATEWAY
+            err, detail, code = "OpenAI authentication failed.", "Service configuration error.", status.HTTP_502_BAD_GATEWAY
+        except ClinicalServerError:
+            err, detail, code = "Upstream service error.", "Service unavailable. Please retry.", status.HTTP_502_BAD_GATEWAY
 
-        rec = GlassClinicalRequest.objects.create(
+        rec = ClinicalAIRequest.objects.create(
             task_type=d.get("task_type", "clinical_qa"),
             question=d.get("question", ""),
             patient_context=d.get("patient_context", ""),
@@ -75,7 +75,7 @@ class ClinicalAskView(APIView):
             error_message=err,
             latency_ms=int((time.perf_counter() - t0) * 1000),
         )
-        return Response({"detail": err, "id": rec.id, "status": "failed"}, status=code)
+        return Response({"detail": detail, "id": rec.id, "status": "failed"}, status=code)
 
 
 class ClinicalConfigView(APIView):
@@ -97,10 +97,10 @@ class ClinicalConfigView(APIView):
 
 
 class ClinicalRequestListView(generics.ListAPIView):
-    queryset = GlassClinicalRequest.objects.order_by("-created_at")
+    queryset = ClinicalAIRequest.objects.order_by("-created_at")
     serializer_class = ClinicalRequestSerializer
 
 
 class ClinicalRequestDetailView(generics.RetrieveAPIView):
-    queryset = GlassClinicalRequest.objects.all()
+    queryset = ClinicalAIRequest.objects.all()
     serializer_class = ClinicalRequestSerializer

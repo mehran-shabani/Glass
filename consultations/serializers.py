@@ -1,16 +1,16 @@
 from rest_framework import serializers
 
-from .models import GlassClinicalRequest
+from .models import ClinicalAIRequest
 
 
 class ClinicalAskRequestSerializer(serializers.Serializer):
     TASK_CHOICES = [
         "clinical_qa",
-        "differential",
-        "treatment_plan",
-        "summarization",
-        "documentation",
-        "triage",
+        "draft_ddx",
+        "draft_assessment_plan",
+        "draft_hpi",
+        "draft_clinic_note",
+        "draft_patient_handout",
         "raw_prompt",
     ]
 
@@ -25,11 +25,11 @@ class ClinicalAskRequestSerializer(serializers.Serializer):
 
 class ClinicalRequestSerializer(serializers.ModelSerializer):
     class Meta:
-        model = GlassClinicalRequest
+        model = ClinicalAIRequest
         fields = "__all__"
 
 
 class ClinicalAskResponseSerializer(serializers.ModelSerializer):
     class Meta:
-        model = GlassClinicalRequest
+        model = ClinicalAIRequest
         fields = ["id", "task_type", "question", "patient_context", "status", "extracted_content", "references", "citations", "usage", "detected_schema", "raw_response", "error_message", "latency_ms", "created_at"]
