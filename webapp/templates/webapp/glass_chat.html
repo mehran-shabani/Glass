@@ -1,0 +1,8 @@
+<!doctype html><html><body>
+<h1>Glass Clinical Chat</h1>
+<p>این خروجی صرفاً کمک‌تصمیم بالینی برای بررسی پزشک است و جایگزین قضاوت بالینی، معاینه، گایدلاین محلی یا تصمیم نهایی پزشک نیست.</p>
+<select id='task_type'><option value='clinical_qa'>clinical_qa</option><option value='differential'>differential</option><option value='treatment_plan'>treatment_plan</option><option value='summarization'>summarization</option><option value='documentation'>documentation</option><option value='triage'>triage</option></select>
+<textarea id='patient_context'></textarea><textarea id='question'></textarea><button id='ask'>Ask Glass</button>
+<pre id='output'></pre><ul id='refs'></ul>
+<script src='/static/webapp/glass_chat.js'></script>
+</body></html>
