@@ -112,12 +112,12 @@ class ClinicalConfigView(APIView):
         )
 
 
-class HistoryListView(generics.ListAPIView):
+class ClinicalHistoryListView(generics.ListAPIView):
     queryset = ClinicalAIRequest.objects.order_by("-created_at")
     serializer_class = ClinicalAIRequestSerializer
 
 
-class HistoryDetailView(generics.RetrieveAPIView):
+class ClinicalHistoryDetailView(generics.RetrieveAPIView):
     queryset = ClinicalAIRequest.objects.all()
     serializer_class = ClinicalAIRequestSerializer
 
