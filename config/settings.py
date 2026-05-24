@@ -9,7 +9,34 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
 
-DEBUG = os.getenv("DEBUG", "true").lower() == "true"
+def env_bool(name, default):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def env_int(name, default):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except ValueError:
+        return default
+
+
+def env_float(name, default):
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        return float(value)
+    except ValueError:
+        return default
+
+
+DEBUG = env_bool("DEBUG", True)
 
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
 
@@ -105,33 +132,17 @@ REST_FRAMEWORK = {
 }
 
 
-# Glass API settings
-GLASS_API_KEY = os.getenv("GLASS_API_KEY", "")
+# OpenAI settings
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4.1")
+OPENAI_TIMEOUT_SECONDS = env_int("OPENAI_TIMEOUT_SECONDS", 120)
+OPENAI_TEMPERATURE = env_float("OPENAI_TEMPERATURE", 0.2)
+OPENAI_MAX_OUTPUT_TOKENS = env_int("OPENAI_MAX_OUTPUT_TOKENS", 3000)
 
-GLASS_API_BASE_URL = os.getenv(
-    "GLASS_API_BASE_URL",
-    "https://glass.health/api/external/v2",
-)
-
-GLASS_API_VERSION = os.getenv(
-    "GLASS_API_VERSION",
-    "glass-5.5",
-)
-
-GLASS_API_TIMEOUT_SECONDS = int(
-    os.getenv("GLASS_API_TIMEOUT_SECONDS", "120")
-)
-
-GLASS_API_AUTH_HEADER = os.getenv(
-    "GLASS_API_AUTH_HEADER",
-    "Authorization",
-)
-
-GLASS_API_AUTH_SCHEME = os.getenv(
-    "GLASS_API_AUTH_SCHEME",
-    "Bearer",
-)
-
-GLASS_API_DEBUG_RAW_RESPONSE = (
-    os.getenv("GLASS_API_DEBUG_RAW_RESPONSE", "true").lower() == "true"
-)
+# Clinical app settings
+CLINICAL_APP_NAME = os.getenv("CLINICAL_APP_NAME", "Helssa Clinical AI")
+CLINICAL_DEFAULT_LANGUAGE = os.getenv("CLINICAL_DEFAULT_LANGUAGE", "fa")
+CLINICAL_STRUCTURED_OUTPUT = env_bool("CLINICAL_STRUCTURED_OUTPUT", True)
+CLINICAL_STORE_RAW_RESPONSE = env_bool("CLINICAL_STORE_RAW_RESPONSE", True)
+CLINICAL_SAFE_MODE = env_bool("CLINICAL_SAFE_MODE", True)
