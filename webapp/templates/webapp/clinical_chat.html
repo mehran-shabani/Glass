@@ -1,23 +1,90 @@
+{% load static %}
 <!doctype html>
-<html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Helssa Clinical AI</title>
+  <link rel="stylesheet" href="{% static 'webapp/clinical_chat.css' %}">
+</head>
 <body>
-<h1>Clinical Assistant</h1>
-<p>این خروجی صرفاً کمک‌تصمیم بالینی برای بررسی پزشک است و جایگزین قضاوت بالینی، معاینه، گایدلاین محلی یا تصمیم نهایی پزشک نیست.</p>
-<p id="config_status">Loading config...</p>
-<label>Task type</label>
-<select id='task_type'>
-  <option value='clinical_qa'>clinical_qa</option><option value='differential'>differential</option><option value='treatment_plan'>treatment_plan</option><option value='summarization'>summarization</option><option value='documentation'>documentation</option><option value='triage'>triage</option><option value='raw_prompt'>raw_prompt</option>
-</select>
-<label><input type="checkbox" id="raw_mode"> raw prompt mode</label>
-<label><input type="checkbox" id="show_raw"> show raw response</label>
-<div><label>Patient context</label><br><textarea id='patient_context' rows="4" cols="100"></textarea></div>
-<div><label>Question</label><br><textarea id='question' rows="4" cols="100"></textarea></div>
-<button id='ask'>Ask Clinical AI</button>
-<div id="meta"></div>
-<h3>Extracted answer</h3><pre id='output'></pre>
-<h3>References</h3><pre id='refs'></pre>
-<h3>Citations</h3><pre id='cites'></pre>
-<h3>Usage</h3><pre id='usage'></pre>
-<h3>Raw JSON</h3><pre id='raw'></pre>
-<script src='/static/webapp/clinical_chat.js'></script>
-</body></html>
+  <main class="container">
+    <header class="header">
+      <h1>Helssa Clinical AI</h1>
+      <p class="banner">این ابزار فقط کمک‌تصمیم برای پزشک است و جایگزین قضاوت بالینی، معاینه، گایدلاین‌های محلی یا ارجاع اورژانسی نیست.</p>
+    </header>
+
+    <section class="card form-card">
+      <div class="field">
+        <label for="model_input">ورودی مدل</label>
+        <input id="model_input" type="text" placeholder="در حال بارگذاری از تنظیمات...">
+      </div>
+
+      <div class="field">
+        <label>نوع درخواست</label>
+        <div id="task_buttons" class="task-buttons">
+          <button type="button" class="task-btn active" data-task="clinical_qa">Ask a Question</button>
+          <button type="button" class="task-btn" data-task="differential">Draft DDx</button>
+          <button type="button" class="task-btn" data-task="treatment_plan">Draft A&amp;P</button>
+          <button type="button" class="task-btn" data-task="summarization">Draft HPI</button>
+          <button type="button" class="task-btn" data-task="documentation">Draft Clinic Note</button>
+          <button type="button" class="task-btn" data-task="patient_education">Draft Patient Handout</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="patient_context">شرح حال / اطلاعات بیمار</label>
+        <textarea id="patient_context" rows="6"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="question">سوال</label>
+        <textarea id="question" rows="4"></textarea>
+      </div>
+
+      <div class="row-options">
+        <label><input type="checkbox" id="structured_output"> خروجی ساختاریافته</label>
+        <label id="debug_row" class="hidden"><input type="checkbox" id="show_raw"> نمایش پاسخ خام (Debug)</label>
+      </div>
+
+      <div class="actions">
+        <button id="send_btn" type="button">ارسال</button>
+        <span id="status_text" class="status"></span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>پاسخ اصلی</h2>
+      <pre id="main_answer" class="panel"></pre>
+      <button id="copy_answer" type="button" class="secondary">کپی پاسخ</button>
+    </section>
+
+    <section id="red_flags_section" class="card hidden">
+      <h2>علائم هشدار</h2>
+      <pre id="red_flags" class="panel"></pre>
+    </section>
+
+    <section id="missing_data_section" class="card hidden">
+      <h2>داده‌های ناقص</h2>
+      <pre id="missing_data" class="panel"></pre>
+    </section>
+
+    <section id="next_steps_section" class="card hidden">
+      <h2>اقدامات پیشنهادی بعدی</h2>
+      <pre id="next_steps" class="panel"></pre>
+    </section>
+
+    <section class="card">
+      <h2>مصرف</h2>
+      <pre id="usage" class="panel"></pre>
+    </section>
+
+    <section id="raw_section" class="card hidden">
+      <h2>Raw JSON</h2>
+      <pre id="raw_json" class="panel"></pre>
+    </section>
+  </main>
+
+  <script src="{% static 'webapp/clinical_chat.js' %}"></script>
+</body>
+</html>
